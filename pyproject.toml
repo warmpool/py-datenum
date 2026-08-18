@@ -1,20 +1,32 @@
-[build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "datenum"
 version = "0.1.0"
 description = "MATLAB-style numeric dates for Python"
-requires-python = ">=3.9"
-dependencies = []
+readme = "README.md"
+authors = [
+    { name = "lkkbox", email = "mail@mail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.2",
+    "python-dateutil>=2.9.0.post0",
+]
+
+[project.scripts]
+py-datenum = "py_datenum:main"
 
 [project.optional-dependencies]
 numpy = ["numpy>=1.24"]
 dev = ["pytest>=7.0", "numpy>=1.24"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.ruff.lint]
+ignore = ["DTZ001"]

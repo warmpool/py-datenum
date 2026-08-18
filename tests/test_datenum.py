@@ -4,8 +4,8 @@ import datetime as dt
 
 import datenum
 
-
 # ── Epoch basics ──────────────────────────────────────────────────────────
+
 
 def test_epoch_default():
     assert datenum.get_epoch() == dt.datetime(2000, 1, 1)
@@ -31,7 +31,7 @@ def test_set_epoch_rejects_timezone_aware():
     import pytest
 
     with pytest.raises(ValueError, match="timezone"):
-        datenum.set_epoch(dt.datetime(2000, 1, 1, tzinfo=dt.timezone.utc))
+        datenum.set_epoch(dt.datetime(2000, 1, 1, tzinfo=dt.UTC))
 
 
 def test_set_epoch_rejects_non_midnight():
@@ -53,8 +53,9 @@ def test_rejected_epoch_leaves_current_epoch_unchanged():
 def test_temporary_epoch_rejects_timezone_aware():
     import pytest
 
-    with pytest.raises(ValueError, match="timezone"), datenum.temporary_epoch(
-        dt.datetime(2000, 1, 1, tzinfo=dt.timezone.utc)
+    with (
+        pytest.raises(ValueError, match="timezone"),
+        datenum.temporary_epoch(dt.datetime(2000, 1, 1, tzinfo=dt.UTC)),
     ):
         pass
 
@@ -62,8 +63,9 @@ def test_temporary_epoch_rejects_timezone_aware():
 def test_temporary_epoch_rejects_non_midnight():
     import pytest
 
-    with pytest.raises(ValueError, match="midnight"), datenum.temporary_epoch(
-        dt.datetime(2000, 1, 1, 6, 30, 0)
+    with (
+        pytest.raises(ValueError, match="midnight"),
+        datenum.temporary_epoch(dt.datetime(2000, 1, 1, 6, 30, 0)),
     ):
         pass
 
@@ -82,6 +84,7 @@ def test_non_2000_midnight_epoch_roundtrips():
 
 
 # ── from_datetime / to_datetime ───────────────────────────────────────────
+
 
 def test_epoch_is_zero():
     assert datenum.from_datetime(dt.datetime(2000, 1, 1)) == 0.0
@@ -119,6 +122,7 @@ def test_roundtrip_microsecond_precision():
 
 # ── from_ymd / to_ymd ────────────────────────────────────────────────────
 
+
 def test_from_ymd_matches_datetime():
     expected = datenum.from_datetime(dt.datetime(2024, 3, 15))
     assert datenum.from_ymd(2024, 3, 15) == expected
@@ -135,6 +139,7 @@ def test_from_ymd_whole_floats():
 
 def test_from_ymd_non_whole_float_raises():
     import pytest
+
     with pytest.raises(ValueError, match="whole number"):
         datenum.from_ymd(2024.5, 1, 1)
 
@@ -148,9 +153,18 @@ def test_to_ymd_roundtrip():
 
 # ── from_string / to_string ───────────────────────────────────────────────
 
-def test_from_string_default_format():
+
+def test_from_string_using_dateutil_parser():
     dn = datenum.from_string("2024-07-15 13:45:30")
     expected = datenum.from_datetime(dt.datetime(2024, 7, 15, 13, 45, 30))
+    assert dn == expected
+
+    dn = datenum.from_string("2024-07-15")
+    expected = datenum.from_datetime(dt.datetime(2024, 7, 15))
+    assert dn == expected
+
+    dn = datenum.from_string("2024 07 15")
+    expected = datenum.from_datetime(dt.datetime(2024, 7, 15))
     assert dn == expected
 
 
@@ -174,6 +188,7 @@ def test_to_string_custom_format():
 
 # ── Arithmetic ────────────────────────────────────────────────────────────
 
+
 def test_add_days():
     dn1 = datenum.from_ymd(2024, 1, 1)
     dn2 = dn1 + 7
@@ -188,6 +203,7 @@ def test_subtract_dates_gives_days():
 
 
 # ── Individual component accessors ────────────────────────────────────────
+
 
 def test_year():
     dn = datenum.from_ymd(2024, 7, 15, 13, 45, 30, 123456)
@@ -225,6 +241,7 @@ def test_microsecond():
 
 
 # ── Calendar helpers ──────────────────────────────────────────────────────
+
 
 def test_is_leap_year_true():
     assert datenum.is_leap_year(datenum.from_ymd(2024, 1, 1)) is True

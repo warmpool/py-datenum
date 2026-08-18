@@ -7,7 +7,6 @@ import pytest
 
 import datenum
 
-
 # ── from_datetime_array / to_datetime_array ────────────────────────────────
 
 
@@ -234,7 +233,7 @@ class TestVectorizedToYmd:
 
     def test_microsecond_precision(self):
         dns = np.array([datenum.from_ymd(2024, 1, 1, 0, 0, 0, 123456)])
-        y, m, d, h, mi, s, us = datenum.to_ymd(dns)
+        _y, _m, _d, _h, _mi, _s, us = datenum.to_ymd(dns)
         np.testing.assert_array_equal(us, [123456])
 
     def test_max_microsecond(self):
@@ -282,20 +281,24 @@ class TestVectorizedFromYmd:
 
     def test_broadcast_scalar_month_day(self):
         result = datenum.from_ymd(np.array([2024, 2025]), 1, 1)
-        expected = np.array([datenum.from_ymd(2024, 1, 1), datenum.from_ymd(2025, 1, 1)])
+        expected = np.array(
+            [datenum.from_ymd(2024, 1, 1), datenum.from_ymd(2025, 1, 1)]
+        )
         np.testing.assert_allclose(result, expected, atol=1e-6)
 
     def test_broadcast_all_scalars(self):
         """All scalar args should broadcast to a single-element result."""
         result = datenum.from_ymd(2024, 7, 15)
-        expected = datenum.from_ymd(
-            np.array([2024]), np.array([7]), np.array([15])
-        )
+        expected = datenum.from_ymd(np.array([2024]), np.array([7]), np.array([15]))
         np.testing.assert_allclose(result, expected, atol=1e-6)
 
     def test_leap_year_feb_29(self):
-        result = datenum.from_ymd(np.array([2024, 2025]), np.array([2, 2]), np.array([29, 28]))
-        expected = np.array([datenum.from_ymd(2024, 2, 29), datenum.from_ymd(2025, 2, 28)])
+        result = datenum.from_ymd(
+            np.array([2024, 2025]), np.array([2, 2]), np.array([29, 28])
+        )
+        expected = np.array(
+            [datenum.from_ymd(2024, 2, 29), datenum.from_ymd(2025, 2, 28)]
+        )
         np.testing.assert_allclose(result, expected, atol=1e-6)
 
 
@@ -357,7 +360,9 @@ class TestScalarRegression:
         assert isinstance(datenum.minute(datenum.from_ymd(2024, 7, 15, 13, 45)), int)
 
     def test_second(self):
-        assert isinstance(datenum.second(datenum.from_ymd(2024, 7, 15, 13, 45, 30)), int)
+        assert isinstance(
+            datenum.second(datenum.from_ymd(2024, 7, 15, 13, 45, 30)), int
+        )
 
     def test_microsecond(self):
         assert isinstance(
@@ -377,9 +382,7 @@ class TestScalarRegression:
         assert isinstance(datenum.day_of_month(datenum.from_ymd(2024, 7, 15)), int)
 
     def test_day_of_year_229(self):
-        assert isinstance(
-            datenum.day_of_year_229(datenum.from_ymd(2025, 3, 1)), int
-        )
+        assert isinstance(datenum.day_of_year_229(datenum.from_ymd(2025, 3, 1)), int)
 
     def test_from_ymd(self):
         assert isinstance(datenum.from_ymd(2024, 7, 15), float)

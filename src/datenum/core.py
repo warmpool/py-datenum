@@ -8,21 +8,23 @@ from __future__ import annotations
 
 import calendar
 import datetime as _dt
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Generator, Sequence, Tuple, Union, overload
+from typing import TYPE_CHECKING, Any, overload
+
+from dateutil.parser import parse
 
 try:
     import numpy as np
 
     _HAS_NUMPY = True
 except ImportError:
-    np = None  # type: ignore[assignment]
     _HAS_NUMPY = False
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
 
-    DnScalar = Union[int, float, np.integer, np.floating]
+    DnScalar = int | float | np.integer | np.floating
 
 _NS_PER_DAY: int = 86_400_000_000_000
 
@@ -36,9 +38,7 @@ _epoch: _dt.datetime = _DEFAULT_EPOCH
 def _validate_epoch(epoch: _dt.datetime) -> None:
     """Reject epochs that would break the naive, midnight, timezone-less contract."""
     if epoch.tzinfo is not None:
-        raise ValueError(
-            f"epoch must be timezone-naive, got timezone {epoch.tzinfo!r}"
-        )
+        raise ValueError(f"epoch must be timezone-naive, got timezone {epoch.tzinfo!r}")
     if epoch.time() != _dt.time.min:
         raise ValueError(
             f"epoch must be at midnight (00:00:00), got {epoch.time().isoformat()}"
@@ -134,7 +134,7 @@ def to_datetime_array(dn):
 def from_datetime_array(dt: _dt.datetime) -> float: ...
 @overload
 def from_datetime_array(
-    dt: Union[Sequence[_dt.datetime], np.datetime64, NDArray[np.datetime64]],
+    dt: Sequence[_dt.datetime] | np.datetime64 | NDArray[np.datetime64],
 ) -> NDArray[np.float64]: ...
 def from_datetime_array(dt):
     """Convert datetime(s) to datenum value(s).
@@ -223,13 +223,13 @@ def from_ymd(
     microsecond: ArrayLike = 0,
 ) -> NDArray[np.float64]: ...
 def from_ymd(
-    year: float,
-    month: float,
-    day: float,
-    hour: float = 0,
-    minute: float = 0,
-    second: float = 0,
-    microsecond: float = 0,
+    year: Any,
+    month: Any,
+    day: Any,
+    hour: Any = 0,
+    minute: Any = 0,
+    second: Any = 0,
+    microsecond: Any = 0,
 ):
     """Convert year/month/day (and optional time) to a datenum.
 
@@ -267,10 +267,10 @@ def from_ymd(
 
 
 @overload
-def to_ymd(dn: DnScalar) -> Tuple[int, int, int, int, int, int, int]: ...
+def to_ymd(dn: DnScalar) -> tuple[int, int, int, int, int, int, int]: ...
 @overload
-def to_ymd(dn: ArrayLike) -> Tuple[NDArray[np.int64], ...]: ...
-def to_ymd(dn: float):
+def to_ymd(dn: ArrayLike) -> tuple[NDArray[np.int64], ...]: ...
+def to_ymd(dn: Any):
     """Convert a datenum to (year, month, day, hour, minute, second, microsecond).
 
     Returns a tuple of seven integers for scalar input, or a tuple of seven
@@ -291,7 +291,7 @@ def to_ymd(dn: float):
         raise ImportError(
             "numpy is required for array inputs (pip install datenum[numpy])"
         )
-    dt64 = to_datetime_array(dn)
+    dt64: NDArray[np.datetime64] = to_datetime_array(dn)  # type: ignore[assignment]
     years = dt64.astype("datetime64[Y]").astype("int64") + 1970
     months = (dt64.astype("datetime64[M]") - dt64.astype("datetime64[Y]")).astype(
         "int64"
@@ -493,9 +493,12 @@ def day_of_year_229(dn):
 # ---------------------------------------------------------------------------
 
 
-def from_string(s: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> float:
+def from_string(s: str, fmt: str | None = None) -> float:
     """Parse a date string into a datenum using *fmt* (default ISO-like)."""
-    return from_datetime(_dt.datetime.strptime(s, fmt))
+    if fmt is None:
+        return from_datetime(parse(s))
+    else:
+        return from_datetime(_dt.datetime.strptime(s, fmt))  # noqa: DTZ007
 
 
 def to_string(dn: float, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
