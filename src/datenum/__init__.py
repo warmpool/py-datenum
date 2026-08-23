@@ -8,6 +8,7 @@ Default epoch is 2000-01-01T00:00:00.  Use ``set_epoch`` or
 """
 
 from .core import (
+    add_month,
     day,
     day_of_month,
     day_of_week,
@@ -32,6 +33,7 @@ from .core import (
 )
 
 __all__ = [
+    "add_month",
     "day",
     "day_of_month",
     "day_of_week",

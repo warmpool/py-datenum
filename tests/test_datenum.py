@@ -4,6 +4,12 @@ import datetime as dt
 
 import datenum
 
+try:
+    UTC = dt.UTC  # ty: ignore
+except AttributeError:
+    UTC = dt.timezone.utc  # ty: ignore
+
+
 # ── Epoch basics ──────────────────────────────────────────────────────────
 
 
@@ -31,7 +37,7 @@ def test_set_epoch_rejects_timezone_aware():
     import pytest
 
     with pytest.raises(ValueError, match="timezone"):
-        datenum.set_epoch(dt.datetime(2000, 1, 1, tzinfo=dt.UTC))
+        datenum.set_epoch(dt.datetime(2000, 1, 1, tzinfo=UTC))
 
 
 def test_set_epoch_rejects_non_midnight():
@@ -55,7 +61,7 @@ def test_temporary_epoch_rejects_timezone_aware():
 
     with (
         pytest.raises(ValueError, match="timezone"),
-        datenum.temporary_epoch(dt.datetime(2000, 1, 1, tzinfo=dt.UTC)),
+        datenum.temporary_epoch(dt.datetime(2000, 1, 1, tzinfo=UTC)),
     ):
         pass
 
@@ -293,3 +299,109 @@ def test_day_of_year_229_non_leap_feb_28():
 
 def test_day_of_year_229_leap_mar_1():
     assert datenum.day_of_year_229(datenum.from_ymd(2024, 3, 1)) == 61
+
+
+# ── add_month ──────────────────────────────────────────────────────────────
+
+
+def test_add_month_basic():
+    dn = datenum.from_ymd(2024, 1, 15)
+    result = datenum.to_ymd(datenum.add_month(dn, 1))
+    assert result[:3] == (2024, 2, 15)
+
+
+def test_add_month_clamp_leap():
+    dn = datenum.from_ymd(2024, 1, 31)
+    result = datenum.to_ymd(datenum.add_month(dn, 1))
+    assert result[:3] == (2024, 2, 29)
+
+
+def test_add_month_clamp_non_leap():
+    dn = datenum.from_ymd(2025, 1, 31)
+    result = datenum.to_ymd(datenum.add_month(dn, 1))
+    assert result[:3] == (2025, 2, 28)
+
+
+def test_add_month_subtract():
+    dn = datenum.from_ymd(2024, 3, 15)
+    result = datenum.to_ymd(datenum.add_month(dn, -1))
+    assert result[:3] == (2024, 2, 15)
+
+
+def test_add_month_wrap_year():
+    dn = datenum.from_ymd(2024, 12, 15)
+    result = datenum.to_ymd(datenum.add_month(dn, 1))
+    assert result[:3] == (2025, 1, 15)
+
+
+def test_add_month_preserves_time():
+    dn = datenum.from_ymd(2024, 1, 15, 12, 30, 45)
+    result = datenum.to_ymd(datenum.add_month(dn, 1))
+    assert result[:3] == (2024, 2, 15)
+    assert result[3:6] == (12, 30, 45)
+
+
+def test_add_month_default_delta():
+    dn = datenum.from_ymd(2024, 1, 15)
+    result = datenum.to_ymd(datenum.add_month(dn))
+    assert result[:3] == (2024, 2, 15)
+
+
+def test_add_month_zero():
+    dn = datenum.from_ymd(2024, 6, 15)
+    result = datenum.to_ymd(datenum.add_month(dn, 0))
+    assert result[:3] == (2024, 6, 15)
+
+
+def test_add_month_scalar_dn_array_delta():
+    import numpy as np
+
+    dn = datenum.from_ymd(2024, 1, 15)
+    deltas = np.array([1, 2, 3])
+    results = datenum.add_month(dn, deltas)
+    assert isinstance(results, np.ndarray)
+    ymds = [datenum.to_ymd(r)[:3] for r in results]
+    assert ymds == [(2024, 2, 15), (2024, 3, 15), (2024, 4, 15)]
+
+
+def test_add_month_array_dn_scalar_delta():
+    import numpy as np
+
+    dns = np.array(
+        [
+            datenum.from_ymd(2024, 1, 15),
+            datenum.from_ymd(2024, 6, 20),
+            datenum.from_ymd(2024, 11, 1),
+        ]
+    )
+    results = datenum.add_month(dns, 1)
+    assert isinstance(results, np.ndarray)
+    ymds = [datenum.to_ymd(r)[:3] for r in results]
+    assert ymds == [(2024, 2, 15), (2024, 7, 20), (2024, 12, 1)]
+
+
+def test_add_month_array_dn_array_delta():
+    import numpy as np
+
+    dns = np.array(
+        [
+            datenum.from_ymd(2024, 1, 31),
+            datenum.from_ymd(2024, 3, 15),
+            datenum.from_ymd(2024, 12, 1),
+        ]
+    )
+    deltas = np.array([1, -1, 2])
+    results = datenum.add_month(dns, deltas)
+    assert isinstance(results, np.ndarray)
+    ymds = [datenum.to_ymd(r)[:3] for r in results]
+    assert ymds == [(2024, 2, 29), (2024, 2, 15), (2025, 2, 1)]
+
+
+def test_add_month_mismatched_lengths():
+    import numpy as np
+    import pytest
+
+    dns = np.array([datenum.from_ymd(2024, 1, 15), datenum.from_ymd(2024, 2, 15)])
+    deltas = np.array([1, 2, 3])
+    with pytest.raises(ValueError, match="same shape"):
+        datenum.add_month(dns, deltas)

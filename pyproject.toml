@@ -6,9 +6,8 @@ readme = "README.md"
 authors = [
     { name = "lkkbox", email = "mail@mail.com" }
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
-    "numpy>=2.5.2",
     "python-dateutil>=2.9.0.post0",
 ]
 
