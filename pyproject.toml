@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MATLAB-style numeric dates for Python"
 readme = "README.md"
 authors = [
-    { name = "lkkbox", email = "mail@mail.com" }
+    { name = "warmpool", email = "mail@mail.com" }
 ]
 requires-python = ">=3.10"
 dependencies = [
@@ -29,3 +29,7 @@ dev = [
 
 [tool.ruff.lint]
 ignore = ["DTZ001"]
+
+
+[project.urls]
+Homepage = "https://github.com/warmpool/py-datenum"
