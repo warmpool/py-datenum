@@ -990,7 +990,7 @@ def from_string(s: str, fmt: str | None = None) -> float:
         return from_datetime(_dt.datetime.strptime(s, fmt))  # noqa: DTZ007
 
 
-def to_string(dn: float, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+def to_string(dn: DnScalar, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format a datenum as a string using a :func:`strftime` pattern.
 
     Args:
