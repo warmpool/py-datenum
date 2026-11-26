@@ -1,6 +1,6 @@
 [project]
 name = "datenum"
-version = "0.1.0"
+version = "0.2.0"
 description = "MATLAB-style numeric dates for Python"
 readme = "README.md"
 authors = [

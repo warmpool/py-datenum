@@ -14,6 +14,7 @@ and the accessors, which accept lists and NumPy arrays and return
 """
 
 from __future__ import annotations
+from math import floor
 
 import calendar
 import datetime as _dt
@@ -1009,3 +1010,14 @@ def to_string(dn: float, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
         '15/07/2024'
     """
     return to_datetime(dn).strftime(fmt)
+
+
+# ---------------------------------------------------------------------------
+# Realtime helpers
+# ---------------------------------------------------------------------------
+def now() -> float:
+    return from_datetime(_dt.datetime.now())
+
+
+def today() -> float:
+    return floor(now())
