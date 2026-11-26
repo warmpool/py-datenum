@@ -23,12 +23,14 @@ from .core import (
     microsecond,
     minute,
     month,
+    now,
     second,
     set_epoch,
     temporary_epoch,
     to_datetime,
     to_string,
     to_ymd,
+    today,
     year,
 )
 
@@ -48,12 +50,14 @@ __all__ = [
     "microsecond",
     "minute",
     "month",
+    "now",
     "second",
     "set_epoch",
     "temporary_epoch",
     "to_datetime",
     "to_string",
     "to_ymd",
+    "today",
     "year",
 ]
 
